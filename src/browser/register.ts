@@ -5,6 +5,7 @@ const options = getOptions()
 import "./pages/error.css"
 import "./pages/global.css"
 import "./pages/login.css"
+import "./pages/home.css"
 
 if ("serviceWorker" in navigator) {
   const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)

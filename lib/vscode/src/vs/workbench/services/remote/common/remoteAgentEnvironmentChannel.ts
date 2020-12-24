@@ -10,6 +10,9 @@ import { IExtensionDescription, ExtensionIdentifier } from 'vs/platform/extensio
 import { IRemoteAgentEnvironment } from 'vs/platform/remote/common/remoteAgentEnvironment';
 import { IDiagnosticInfoOptions, IDiagnosticInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { ITelemetryData } from 'vs/platform/telemetry/common/telemetry';
+import { joinPath } from 'vs/base/common/resources';
+
+declare var wb_monaco: any
 
 export interface IGetEnvironmentDataArguments {
 	remoteAuthority: string;
@@ -56,7 +59,8 @@ export class RemoteExtensionEnvironmentChannelClient {
 			pid: data.pid,
 			connectionToken: data.connectionToken,
 			appRoot: URI.revive(data.appRoot),
-			settingsPath: URI.revive(data.settingsPath),
+			settingsPath: joinPath(URI.revive(data.settingsPath), wb_monaco.currentUser),
+			//settingsPath: URI.revive(data.settingsPath),
 			logsPath: URI.revive(data.logsPath),
 			extensionsPath: URI.revive(data.extensionsPath),
 			extensionHostLogsPath: URI.revive(data.extensionHostLogsPath),

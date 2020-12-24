@@ -14,6 +14,8 @@ import { withNullAsUndefined } from 'vs/base/common/types';
 import { IWorkingCopyService, IWorkingCopy, WorkingCopyCapabilities } from 'vs/workbench/services/workingCopy/common/workingCopyService';
 import { ILogService } from 'vs/platform/log/common/log';
 
+declare var wb_monaco: any;
+
 export class EditorAutoSave extends Disposable implements IWorkbenchContribution {
 
 	// Auto save: after delay
@@ -171,6 +173,7 @@ export class EditorAutoSave extends Disposable implements IWorkbenchContribution
 	}
 
 	private scheduleAutoSave(workingCopy: IWorkingCopy): void {
+		if (wb_monaco.suppressSave) return;
 		if (typeof this.autoSaveAfterDelay !== 'number') {
 			return; // auto save after delay must be enabled
 		}

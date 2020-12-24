@@ -41,6 +41,8 @@ import { editorConfigurationBaseNode } from 'vs/editor/common/config/commonEdito
 import { DirtyFilesIndicator } from 'vs/workbench/contrib/files/common/dirtyFilesIndicator';
 import { isEqual } from 'vs/base/common/resources';
 
+declare var wb_monaco: any;
+
 // Viewlet Action
 export class OpenExplorerViewletAction extends ShowViewletAction {
 	static readonly ID = VIEWLET_ID;
@@ -310,7 +312,7 @@ configurationRegistry.registerConfiguration({
 		},
 		'files.autoSaveDelay': {
 			'type': 'number',
-			'default': 1000,
+			'default': (wb_monaco.disabled?1000:200),
 			'markdownDescription': nls.localize({ comment: ['This is the description for a setting. Values surrounded by single quotes are not to be translated.'], key: 'autoSaveDelay' }, "Controls the delay in ms after which a dirty editor is saved automatically. Only applies when `#files.autoSave#` is set to `{0}`.", AutoSaveConfiguration.AFTER_DELAY)
 		},
 		'files.watcherExclude': {

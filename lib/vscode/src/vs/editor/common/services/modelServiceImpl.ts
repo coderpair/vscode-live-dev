@@ -30,6 +30,8 @@ import { EditStackElement, isEditStackElement } from 'vs/editor/common/model/edi
 import { Schemas } from 'vs/base/common/network';
 import { SemanticTokensProviderStyling, toMultilineTokens2 } from 'vs/editor/common/services/semanticTokensProviderStyling';
 
+declare var wb_monaco: any;
+
 export interface IEditorSemanticHighlightingOptions {
 	enabled: true | false | 'configuredByTheme';
 }
@@ -514,6 +516,7 @@ export class ModelServiceImpl extends Disposable implements IModelService {
 			return;
 		}
 		const model = modelData.model;
+		wb_monaco.destroyFirepad(model);
 		const sharesUndoRedoStack = (this._undoRedoService.getUriComparisonKey(model.uri) !== model.uri.toString());
 		let maintainUndoRedoStack = false;
 		let heapSize = 0;

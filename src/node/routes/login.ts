@@ -2,9 +2,8 @@ import { Router, Request } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
-import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
-import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
+import { authenticated, getCookieDomain, IAuthUser, redirect, replaceTemplates } from "../http"
 import { hash, humanPath } from "../util"
 
 enum Cookie {
@@ -45,6 +44,7 @@ const limiter = new RateLimiter()
 
 export const router = Router()
 
+/*
 router.use((req, res, next) => {
   const to = (typeof req.query.to === "string" && req.query.to) || "/"
   if (authenticated(req)) {
@@ -52,6 +52,7 @@ router.use((req, res, next) => {
   }
   next()
 })
+*/
 
 router.get("/", async (req, res) => {
   res.send(await getRoot(req))
@@ -67,14 +68,14 @@ router.post("/", async (req, res) => {
       throw new Error("Missing password")
     }
 
-    if (
-      req.args["hashed-password"]
-        ? safeCompare(hash(req.body.password), req.args["hashed-password"])
-        : req.args.password && safeCompare(req.body.password, req.args.password)
-    ) {
+    const userData = authenticated(req, {
+      key: hash(req.body.password)
+    })
+
+    if (userData) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.Key, hash(req.body.password), {
+      res.cookie(Cookie.Key, (<IAuthUser>userData).key, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         path: req.body.base || "/",
         sameSite: "lax",
@@ -83,7 +84,7 @@ router.post("/", async (req, res) => {
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })
     }
-
+    
     console.error(
       "Failed login attempt",
       JSON.stringify({

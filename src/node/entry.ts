@@ -21,6 +21,10 @@ import * as proxyAgent from "./proxy_agent"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 import { isChild, wrapper } from "./wrapper"
+import firebase from "firebase"
+import { appSettings } from "./appsettings"
+ 
+let firebaseApp:any = null;
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
@@ -104,6 +108,24 @@ const main = async (args: DefaultedArgs): Promise<void> => {
       "Please pass in a password via the config file or environment variable ($PASSWORD or $HASHED_PASSWORD)",
     )
   }
+
+  // Initialize Firebase
+  const firebaseConfig = {
+    apiKey: args["firebase-apiKey"] || '<API_KEY>',
+    authDomain: args["firebase-authDomain"],
+    databaseURL: args["firebase-databaseURL"] 
+  }
+
+  if(args["firebase-authDomain"]){
+    firebaseApp = firebase.initializeApp(firebaseConfig)
+    console.log("init firebase...")
+  }else{
+    console.log("No firebase configuration specified...Skipping...")
+  }
+  
+  const ref = (args["firebase-authDomain"]?firebaseApp.database().ref():null)
+  const childref = (args["firebase-authDomain"]?ref.child(args["firebase-ref"]):null)
+  appSettings.ref = childref;
 
   const [app, wsApp, server] = await createApp(args)
   const serverAddress = ensureAddress(server)

@@ -140,6 +140,9 @@ registerSingleton(IOpenerService, OpenerService, true);
 
 //#region --- workbench contributions
 
+// Coderpair API
+import 'vs/workbench/contrib/coderpair/browser/coderpair.contribution';
+
 // Telemetry
 import 'vs/workbench/contrib/telemetry/browser/telemetry.contribution';
 

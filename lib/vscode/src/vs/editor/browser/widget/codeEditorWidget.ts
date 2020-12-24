@@ -55,6 +55,8 @@ import { WordOperations } from 'vs/editor/common/controller/cursorWordOperations
 import { IViewModel } from 'vs/editor/common/viewModel/viewModel';
 import { OutgoingViewModelEventKind } from 'vs/editor/common/viewModel/viewModelEventDispatcher';
 
+declare var wb_monaco: any;
+
 let EDITOR_ID = 0;
 
 export interface ICodeEditorWidgetOptions {
@@ -1551,8 +1553,8 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 			view.render(false, true);
 			view.domNode.domNode.setAttribute('data-uri', model.uri.toString());
 		}
-
 		this._modelData = new ModelData(model, viewModel, view, hasRealView, listenersToRemove);
+		wb_monaco.attachFirepad(model,this._id);
 	}
 
 	protected _createView(viewModel: ViewModel): [View, boolean] {
@@ -1641,6 +1643,7 @@ export class CodeEditorWidget extends Disposable implements editorBrowser.ICodeE
 		const model = this._modelData.model;
 		const removeDomNode = this._modelData.hasRealView ? this._modelData.view.domNode.domNode : null;
 
+		wb_monaco.detachFirepad(model, this._id);
 		this._modelData.dispose();
 		this._modelData = null;
 

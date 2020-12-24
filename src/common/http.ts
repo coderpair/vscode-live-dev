@@ -18,3 +18,11 @@ export class HttpError extends Error {
     this.name = this.constructor.name
   }
 }
+
+export enum ApiEndpoint {
+  applications = "/applications",
+  process = "/process",
+  recent = "/recent",
+  run = "/run",
+  status = "/status",
+}

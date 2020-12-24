@@ -30,6 +30,8 @@ import { ActiveEditorContext } from 'vs/workbench/common/editor';
 import { SidebarFocusContext } from 'vs/workbench/common/viewlet';
 import { ThemeIcon } from 'vs/platform/theme/common/themeService';
 
+declare var wb_monaco: any;
+
 // Contribute Global Actions
 const category = { value: nls.localize('filesCategory', "File"), original: 'File' };
 
@@ -654,7 +656,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	},
 	order: 3
 });
-
+if(wb_monaco.disabled){
 MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	group: '5_autosave',
 	command: {
@@ -664,7 +666,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	},
 	order: 1
 });
-
+}
 MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	group: '6_close',
 	command: {

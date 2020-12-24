@@ -36,6 +36,7 @@ import { IUndoRedoService } from 'vs/platform/undoRedo/common/undoRedo';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { KeyCode } from 'vs/base/common/keyCodes';
 
+declare var wb_monaco: any;
 
 class DecorationsManager implements IDisposable {
 
@@ -540,12 +541,15 @@ export class ReferenceWidget extends peekView.PeekViewWidget {
 		// show in editor
 		const model = ref.object;
 		if (model) {
+			const change = !(this._preview.getModel() === model.textEditorModel);
 			const scrollType = this._preview.getModel() === model.textEditorModel ? ScrollType.Smooth : ScrollType.Immediate;
 			const sel = Range.lift(reference.range).collapseToStart();
 			this._previewModelReference = ref;
-			this._preview.setModel(model.textEditorModel);
+			(change ? this._preview.setModel(model.textEditorModel) : null);
 			this._preview.setSelection(sel);
 			this._preview.revealRangeInCenter(sel, scrollType);
+			const mdl = this._preview.getModel();
+				(change &&  mdl? wb_monaco.connectEditorToFirepad(this._preview, mdl.uri, "peek" + mdl.id) : null)
 		} else {
 			this._preview.setModel(this._previewNotAvailableMessage);
 			ref.dispose();

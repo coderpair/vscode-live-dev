@@ -19,6 +19,7 @@ import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
 import * as login from "./login"
+import * as dashboard from "./dashboard"
 import * as proxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
@@ -117,6 +118,8 @@ export const register = async (
       redirect(req, res, "/", {})
     })
   }
+
+  app.use("/dashboard", dashboard.router)
 
   app.use("/proxy", proxy.router)
   wsApp.use("/proxy", proxy.wsRouter.router)

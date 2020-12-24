@@ -16,6 +16,8 @@ import { memoize } from 'vs/base/common/decorators';
 import { onUnexpectedError } from 'vs/base/common/errors';
 import { parseLineAndColumnAware } from 'vs/base/common/extpath';
 
+declare var wb_monaco: any
+
 class BrowserWorkbenchConfiguration implements IWindowConfiguration {
 
 	constructor(
@@ -128,8 +130,16 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
 	//     storage. Using browser storage makes sharing or seeding settings
 	//     between browsers difficult. We may want to revisit this once/if we get
 	//     settings sync.
+	
+	//@memoize
+	//get userRoamingDataHome(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.userData }), 'User'); }
+
 	@memoize
-	get userRoamingDataHome(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.vscodeRemote }), 'User'); }
+	get userRoamingDataHome(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.vscodeRemote }), 'User'); }	
+
+	@memoize	
+	get userRoamingDataSettings(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.vscodeRemote }), 'User' , wb_monaco.currentUser); }
+
 	@memoize
 	get userDataPath(): string {
 		const dataPath = this.payload?.get('userDataPath');
@@ -140,13 +150,13 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
 	}
 
 	@memoize
-	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
+	get settingsResource(): URI { return joinPath(this.userRoamingDataSettings, 'settings.json'); }
 
 	@memoize
 	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
 
 	@memoize
-	get snippetsHome(): URI { return joinPath(this.userRoamingDataHome, 'snippets'); }
+	get snippetsHome(): URI { return joinPath(this.userRoamingDataSettings, 'snippets'); }
 
 	@memoize
 	get globalStorageHome(): URI { return URI.joinPath(this.userRoamingDataHome, 'globalStorage'); }
@@ -160,7 +170,7 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
 	 * Sync scoped to a workspace is capable of handling opening same workspace in multiple windows.
 	 */
 	@memoize
-	get userDataSyncHome(): URI { return joinPath(this.userRoamingDataHome, 'sync', this.options.workspaceId); }
+	get userDataSyncHome(): URI { return joinPath(this.userRoamingDataSettings, 'sync', this.options.workspaceId); }
 
 	@memoize
 	get userDataSyncLogResource(): URI { return joinPath(this.options.logsPath, 'userDataSync.log'); }
@@ -169,10 +179,10 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
 	get sync(): 'on' | 'off' | undefined { return undefined; }
 
 	@memoize
-	get keybindingsResource(): URI { return joinPath(this.userRoamingDataHome, 'keybindings.json'); }
+	get keybindingsResource(): URI { return joinPath(this.userRoamingDataSettings, 'keybindings.json'); }
 
 	@memoize
-	get keyboardLayoutResource(): URI { return joinPath(this.userRoamingDataHome, 'keyboardLayout.json'); }
+	get keyboardLayoutResource(): URI { return joinPath(this.userRoamingDataSettings, 'keyboardLayout.json'); }
 
 	@memoize
 	get backupWorkspaceHome(): URI { return joinPath(this.userRoamingDataHome, 'Backups', this.options.workspaceId); }

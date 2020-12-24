@@ -49,6 +49,8 @@ import { createStyleSheet } from 'vs/base/browser/dom';
 import { ITextFileEditorModel, IResolvedTextFileEditorModel, ITextFileService, isTextFileEditorModel } from 'vs/workbench/services/textfile/common/textfiles';
 import { EncodingMode } from 'vs/workbench/common/editor';
 
+declare var wb_monaco: any;
+
 class DiffActionRunner extends ActionRunner {
 
 	runAction(action: IAction, context: any): Promise<any> {
@@ -1076,7 +1078,7 @@ export class DirtyDiffModel extends Disposable {
 	}
 
 	private triggerDiff(): Promise<any> {
-		if (!this.diffDelayer) {
+		if (!this.diffDelayer || wb_monaco.suppressTriggerDiff) {
 			return Promise.resolve(null);
 		}
 

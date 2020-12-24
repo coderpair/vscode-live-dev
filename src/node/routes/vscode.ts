@@ -6,8 +6,9 @@ import qs from "qs"
 import { Emitter } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { getFirstString } from "../../common/util"
+import { appSettings } from "../appsettings"
 import { commit, rootPath, version } from "../constants"
-import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
+import { authenticated, ensureAuthenticated, IAuthUser, redirect, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 import { VscodeProvider } from "../vscode"
 import { Router as WsRouter } from "../wsRouter"
@@ -16,8 +17,17 @@ export const router = Router()
 
 const vscode = new VscodeProvider()
 
+
+router.get("/",(req, res, next) => {
+  if (appSettings.disabled) {
+    throw new Error(`VS Code is currently disabled. Try again later.`)
+  }
+  next()
+})
+
 router.get("/", async (req, res) => {
-  if (!authenticated(req)) {
+  let userData: IAuthUser | boolean;
+  if (!(userData = authenticated(req))) {
     return redirect(req, res, "login", {
       // req.baseUrl can be blank if already at the root.
       to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
@@ -28,13 +38,15 @@ router.get("/", async (req, res) => {
     await fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
     (async () => {
       try {
-        return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "" }, req.query)
+        return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "", userData: userData}, req.query)
       } catch (error) {
         const devMessage = commit === "development" ? "It might not have finished compiling." : ""
         throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
       }
     })(),
   ])
+
+  const user = (userData?(<IAuthUser>userData).user:'default')
 
   options.productConfiguration.codeServerVersion = version
 
@@ -50,9 +62,15 @@ router.get("/", async (req, res) => {
       },
     )
       .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
+      .replace(`"{{CURRENT_USER}}"`, `'${user}'`)
       .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
       .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
-      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
+      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`)
+      .replace("{{COLLAB_DISABLED}}", (appSettings.useCollaboration?'false':'true'))
+      .replace("{{FIREBASE_APIKEY}}", (req.args["firebase-apiKey"]?req.args["firebase-apiKey"]:'<API_KEY>'))
+      .replace("{{FIREBASE_AUTHDOMAIN}}", (req.args["firebase-authDomain"]?req.args["firebase-authDomain"]:'<AUTH_DOMAIN>'))
+      .replace("{{FIREBASE_DATABASEURL}}", (req.args["firebase-databaseURL"]?req.args["firebase-databaseURL"]:'<DATABASE_URL>'))
+      .replace("{{FIREBASE_REF}}", (req.args["firebase-ref"]?req.args["firebase-ref"]:''))
   )
 })
 

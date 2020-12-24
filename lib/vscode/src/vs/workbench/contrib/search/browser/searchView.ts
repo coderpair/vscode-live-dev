@@ -71,6 +71,8 @@ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { Orientation } from 'vs/base/browser/ui/sash/sash';
 import { searchDetailsIcon } from 'vs/workbench/contrib/search/browser/searchIcons';
 
+declare var wb_monaco: any;
+
 const $ = dom.$;
 
 enum SearchUIState {
@@ -656,35 +658,36 @@ export class SearchView extends ViewPane {
 	}
 
 	private buildReplaceAllConfirmationMessage(occurrences: number, fileCount: number, replaceValue?: string) {
+		const wb_replaceWarning = (wb_monaco.disabled ? "" : "In collaborative mode, replace operations may not succeed. After replacing, rerun search to verify completion.");
 		if (occurrences === 1) {
 			if (fileCount === 1) {
 				if (replaceValue) {
-					return nls.localize('removeAll.occurrence.file.confirmation.message', "Replace {0} occurrence across {1} file with '{2}'?", occurrences, fileCount, replaceValue);
+					return nls.localize('removeAll.occurrence.file.confirmation.message', "Replace {0} occurrence across {1} file with '{2}'? {3}", occurrences, fileCount, replaceValue, wb_replaceWarning);
 				}
 
-				return nls.localize('replaceAll.occurrence.file.confirmation.message', "Replace {0} occurrence across {1} file?", occurrences, fileCount);
+				return nls.localize('replaceAll.occurrence.file.confirmation.message', "Replace {0} occurrence across {1} file? {2}", occurrences, fileCount, wb_replaceWarning);
 			}
 
 			if (replaceValue) {
-				return nls.localize('removeAll.occurrence.files.confirmation.message', "Replace {0} occurrence across {1} files with '{2}'?", occurrences, fileCount, replaceValue);
+				return nls.localize('removeAll.occurrence.files.confirmation.message', "Replace {0} occurrence across {1} files with '{2}'? {3}", occurrences, fileCount, replaceValue, wb_replaceWarning);
 			}
 
-			return nls.localize('replaceAll.occurrence.files.confirmation.message', "Replace {0} occurrence across {1} files?", occurrences, fileCount);
+			return nls.localize('replaceAll.occurrence.files.confirmation.message', "Replace {0} occurrence across {1} files? {2}", occurrences, fileCount, wb_replaceWarning);
 		}
 
 		if (fileCount === 1) {
 			if (replaceValue) {
-				return nls.localize('removeAll.occurrences.file.confirmation.message', "Replace {0} occurrences across {1} file with '{2}'?", occurrences, fileCount, replaceValue);
+				return nls.localize('removeAll.occurrences.file.confirmation.message', "Replace {0} occurrences across {1} file with '{2}'? {3}", occurrences, fileCount, replaceValue, wb_replaceWarning);
 			}
 
-			return nls.localize('replaceAll.occurrences.file.confirmation.message', "Replace {0} occurrences across {1} file?", occurrences, fileCount);
+			return nls.localize('replaceAll.occurrences.file.confirmation.message', "Replace {0} occurrences across {1} file? {2}", occurrences, fileCount, wb_replaceWarning);
 		}
 
 		if (replaceValue) {
-			return nls.localize('removeAll.occurrences.files.confirmation.message', "Replace {0} occurrences across {1} files with '{2}'?", occurrences, fileCount, replaceValue);
+			return nls.localize('removeAll.occurrences.files.confirmation.message', "Replace {0} occurrences across {1} files with '{2}'? {3}", occurrences, fileCount, replaceValue, wb_replaceWarning);
 		}
 
-		return nls.localize('replaceAll.occurrences.files.confirmation.message', "Replace {0} occurrences across {1} files?", occurrences, fileCount);
+		return nls.localize('replaceAll.occurrences.files.confirmation.message', "Replace {0} occurrences across {1} files? {2}", occurrences, fileCount, wb_replaceWarning);
 	}
 
 	private clearMessage(): HTMLElement {

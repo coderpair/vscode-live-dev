@@ -80,6 +80,7 @@ export interface VscodeOptions {
 	readonly args: Args;
 	readonly remoteAuthority: string;
 	readonly startPath?: StartPath;
+	readonly userData: any;
 }
 
 export interface VscodeOptionsMessage extends VscodeOptions {

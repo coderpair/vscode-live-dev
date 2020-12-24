@@ -257,7 +257,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			pid: process.pid,
 			connectionToken: this.connectionToken,
 			appRoot: URI.file(this.environment.appRoot),
-			settingsPath: this.environment.settingsResource,
+			settingsPath: this.environment.userRoamingDataHome,
 			logsPath: URI.file(this.environment.logsPath),
 			extensionsPath: URI.file(this.environment.extensionsPath!),
 			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, 'extension-host')),

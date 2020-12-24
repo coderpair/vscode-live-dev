@@ -41,6 +41,8 @@ import { IExtensionService } from 'vs/workbench/services/extensions/common/exten
 import { IPreferencesService } from 'vs/workbench/services/preferences/common/preferences';
 import { DefaultPreferencesEditorInput, KeybindingsEditorInput, PreferencesEditorInput, SettingsEditor2Input } from 'vs/workbench/services/preferences/common/preferencesEditorInput';
 
+declare var wb_monaco: any;
+
 const SETTINGS_EDITOR_COMMAND_SEARCH = 'settings.action.search';
 
 const SETTINGS_EDITOR_COMMAND_FOCUS_NEXT_SETTING = 'settings.action.focusNextSetting';
@@ -1155,6 +1157,6 @@ MenuRegistry.appendMenuItem(MenuId.MenubarFileMenu, {
 	title: nls.localize({ key: 'miPreferences', comment: ['&& denotes a mnemonic'] }, "&&Preferences"),
 	submenu: MenuId.MenubarPreferencesMenu,
 	group: '5_autosave',
-	order: 2,
+	order: (wb_monaco.disabled?2:1),
 	when: IsMacNativeContext.toNegated() // on macOS native the preferences menu is separate under the application menu
 });

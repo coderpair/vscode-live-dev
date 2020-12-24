@@ -32,6 +32,8 @@ import { IUriIdentityService } from 'vs/workbench/services/uriIdentity/common/ur
 import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
 import { IPathService } from 'vs/workbench/services/path/common/pathService';
 
+declare var wb_monaco: any;
+
 namespace delta {
 
 	export function ofSets<T>(before: Set<T>, after: Set<T>): { removed: T[], added: T[] } {
@@ -251,6 +253,7 @@ class MainThreadDocumentAndEditorStateComputer {
 					// candidate (which is the editor that has raised an widget focus event)
 					// in addition to the widget focus check
 					activeEditor = apiEditor.id;
+					wb_monaco.setActiveModel(model);
 				}
 			}
 		}
@@ -270,9 +273,14 @@ class MainThreadDocumentAndEditorStateComputer {
 				for (const snapshot of editors.values()) {
 					if (candidate === snapshot.editor) {
 						activeEditor = snapshot.id;
+						wb_monaco.setActiveModel(candidate.getModel())
 					}
 				}
 			}
+		}
+
+		if(!activeEditor){
+			wb_monaco.setActiveModel(null)
 		}
 
 		// compute new state and compare against old

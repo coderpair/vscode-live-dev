@@ -1,19 +1,36 @@
 import { field, logger } from "@coder/logger"
-import * as express from "express"
+import {Request, Response, NextFunction} from "express"
 import * as expressCore from "express-serve-static-core"
 import qs from "qs"
 import safeCompare from "safe-compare"
+import { Emitter } from "../common/emitter"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType } from "./cli"
 import { commit, rootPath } from "./constants"
 import { hash } from "./util"
 
+
+export type Cookies = { [key: string]: string | undefined }
+export type PostData = { [key: string]: string | string[] | undefined }
+
+export interface IAuthUser {
+  user:string,
+	key: string
+}
+
+interface AuthPayload extends Cookies {
+  key?: string
+}
+
+const _onDisable = new Emitter<void>()
+export const onDisable = _onDisable.event
+
 /**
  * Replace common variable strings in HTML templates.
  */
 export const replaceTemplates = <T extends object>(
-  req: express.Request,
+  req: Request,
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
@@ -34,7 +51,7 @@ export const replaceTemplates = <T extends object>(
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
-export const ensureAuthenticated = (req: express.Request, _?: express.Response, next?: express.NextFunction): void => {
+export const ensureAuthenticated = (req: Request, _?: Response, next?: NextFunction): void => {
   if (!authenticated(req)) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
@@ -46,22 +63,58 @@ export const ensureAuthenticated = (req: express.Request, _?: express.Response, 
 /**
  * Return true if authenticated via cookies.
  */
-export const authenticated = (req: express.Request): boolean => {
+export const authenticated = (req: Request, payload?: AuthPayload): IAuthUser | boolean => {
   switch (req.args.auth) {
     case AuthType.None:
       return true
     case AuthType.Password:
-      // The password is stored in the cookie after being hashed.
-      return !!(
-        req.cookies.key &&
+      if (typeof payload === "undefined") {
+        payload={
+          key:req.cookies.key
+        }
+      }
+      if(
+        payload.key &&
         (req.args["hashed-password"]
-          ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
-      )
+          ? safeCompare(payload.key, req.args["hashed-password"])
+          : req.args.password && safeCompare(payload.key, hash(req.args.password)))
+      ){
+        return {user: 'default' , key: payload.key}
+      }
+      if(req.args.users && payload.key){
+        for(let user in req.args.users){
+          if (safeCompare(payload.key, hash(req.args.users[user].password))) {
+            return {user: user , key: payload.key}
+          }
+        }
+      }
+      return false
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)
   }
 }
+
+/**
+    * Return the provided password value if the payload contains the right
+    * password otherwise return false.
+    */
+export const adminAuthenticated = (req: Request, payload?: AuthPayload): string | boolean => {
+    if (req.args.admin && payload && payload.key) {
+        if (safeCompare(payload.key, hash(req.args.admin))) {
+           return payload.key;
+        }
+    }
+    return false;
+ };
+
+
+/**
+  * Disable vscode server from dashboard
+  * 
+  */
+export const disableServer = (): void => {
+    _onDisable.emit()
+};
 
 /**
  * Get the relative path that will get us to the root of the page. For each
@@ -72,7 +125,7 @@ export const authenticated = (req: express.Request): boolean => {
  * /foo/bar => ./..
  * /foo/bar/ => ./../..
  */
-export const relativeRoot = (req: express.Request): string => {
+export const relativeRoot = (req: Request): string => {
   const depth = (req.originalUrl.split("?", 1)[0].match(/\//g) || []).length
   return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
 }
@@ -82,8 +135,8 @@ export const relativeRoot = (req: express.Request): string => {
  * `override` will merge with the existing query (use `undefined` to unset).
  */
 export const redirect = (
-  req: express.Request,
-  res: express.Response,
+  req: Request,
+  res: Response,
   to: string,
   override: expressCore.Query = {},
 ): void => {

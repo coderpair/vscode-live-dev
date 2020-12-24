@@ -6,24 +6,35 @@ import * as ipc from "../../lib/vscode/src/vs/server/ipc"
 import { arrayify, generateUuid } from "../common/util"
 import { rootPath } from "./constants"
 import { settings } from "./settings"
+import { appSettings } from "./appsettings"
 import { SocketProxyProvider } from "./socket"
 import { isFile } from "./util"
 import { onMessage, wrapper } from "./wrapper"
+import { onDisable } from "./http"
 
 export class VscodeProvider {
   public readonly serverRootPath: string
   public readonly vsRootPath: string
   private _vscode?: Promise<cp.ChildProcess>
+  public sockets = new Set<net.Socket>();
   private readonly socketProvider = new SocketProxyProvider()
 
   public constructor() {
     this.vsRootPath = path.resolve(rootPath, "lib/vscode")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
     wrapper.onDispose(() => this.dispose())
+    onDisable(()=>this.disable())
+  }
+
+  public disable(): void {
+    console.log("disconnect");
+    this.sockets.forEach(socket => socket.destroy());
+    this.dispose();
   }
 
   public async dispose(): Promise<void> {
     this.socketProvider.stop()
+    this.sockets.clear();
     if (this._vscode) {
       const vscode = await this._vscode
       vscode.removeAllListeners()
@@ -117,9 +128,13 @@ export class VscodeProvider {
    * VS Code expects a raw socket. It will handle all the web socket frames.
    */
   public async sendWebsocket(socket: net.Socket, query: ipc.Query): Promise<void> {
+    if (appSettings.disabled) {
+      throw new Error("Server disabled");
+    }
     const vscode = await this._vscode
     // TLS sockets cannot be transferred to child processes so we need an
     // in-between. Non-TLS sockets will be returned as-is.
+    this.sockets.add(socket);
     const socketProxy = await this.socketProvider.createProxy(socket)
     this.send({ type: "socket", query }, vscode, socketProxy)
   }

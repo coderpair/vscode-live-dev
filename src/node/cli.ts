@@ -54,9 +54,14 @@ export interface Args extends VsArgs {
   _: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
-
   link?: OptionalString
   home?: string
+  users?: any
+  admin?: string
+  "firebase-apiKey"?: string
+  "firebase-authDomain"?: string
+  "firebase-databaseURL"?: string
+  "firebase-ref"?: string
 }
 
 interface Option<T> {
@@ -94,7 +99,7 @@ type OptionType<T> = T extends boolean
   ? "string"
   : T extends string[]
   ? "string[]"
-  : "unknown"
+  : "any"
 
 type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
@@ -204,6 +209,30 @@ const options: Options<Required<Args>> = {
   home: {
     type: "string",
     description: "Set a custom link for the 'Go Home' button in the Application Menu",
+  },
+  admin: {
+    type: "string",
+    description: "Administrative password.",
+  },
+  users: {
+    type: "any",
+    description: "User accounts.",
+  },
+  "firebase-apiKey":{
+    type: "string",
+    description: "API Key from firebase",
+  },
+  "firebase-authDomain":{
+    type: "string",
+    description: "Firebase authDomain parameter.",
+  },
+  "firebase-databaseURL":{
+    type: "string",
+    description: "Firebase databaseURL parameter.",
+  },
+  "firebase-ref":{
+    type: "string",
+    description: "Firebase child ref.",
   },
 }
 
@@ -437,6 +466,10 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.auth = AuthType.Password
   }
 
+  if (!args.admin) {
+    args.admin = 'admin'
+  }
+
   const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
   args.host = addr.host
   args.port = addr.port
@@ -489,6 +522,7 @@ async function defaultConfigFile(): Promise<string> {
   return `bind-addr: 127.0.0.1:8080
 auth: password
 password: ${await generatePassword()}
+admin: ${await generatePassword()}
 cert: false
 `
 }
@@ -525,19 +559,28 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.
+  /*
   const configFileArgv = Object.entries(config).map(([optName, opt]) => {
     if (opt === true) {
       return `--${optName}`
     }
     return `--${optName}=${opt}`
   })
-  const args = parse(configFileArgv, {
-    configFile: configPath,
-  })
-  return {
-    ...args,
-    config: configPath,
-  }
+  */
+ const args: {[key: string]: any} = {};
+   for (let [key, value] of Object.entries(config)) {
+     if(value)args[key]=value
+   }
+  
+  //const args = parse(configFileArgv, {
+  //  configFile: configPath,
+  //})
+
+   return {
+    _:[],
+     ...args,
+     config: configPath,
+   }
 }
 
 function parseBindAddr(bindAddr: string): Addr {

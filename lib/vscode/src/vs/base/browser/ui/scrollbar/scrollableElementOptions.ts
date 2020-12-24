@@ -41,6 +41,11 @@ export interface ScrollableElementCreationOptions {
 	 */
 	scrollYToX?: boolean;
 	/**
+	 * Allow propagation.
+	* Defaults to false.
+	*/
+	allowPropagation?: boolean;
+	/**
 	 * Always consume mouse wheel events, even when scrolling is no longer possible.
 	 * Defaults to false.
 	 */
@@ -131,6 +136,7 @@ export interface ScrollableElementResolvedOptions {
 	handleMouseWheel: boolean;
 	flipAxes: boolean;
 	scrollYToX: boolean;
+	allowPropagation:boolean;
 	alwaysConsumeMouseWheel: boolean;
 	mouseWheelScrollSensitivity: number;
 	fastScrollSensitivity: number;

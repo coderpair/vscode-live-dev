@@ -61,6 +61,8 @@ import { CATEGORIES } from 'vs/workbench/common/actions';
 import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import { IHostService } from 'vs/workbench/services/host/browser/host';
 
+declare var wb_monaco: any;
+
 class BrowserMain extends Disposable {
 
 	constructor(
@@ -103,6 +105,13 @@ class BrowserMain extends Disposable {
 		const instantiationService = workbench.startup();
 
 		await initialize(services.serviceCollection);
+
+		// CoderPair Plugin initialization
+		wb_monaco.serviceCollection = services.serviceCollection;
+		if(!wb_monaco.disabled){
+			wb_monaco.initializeCoderpair();
+			wb_monaco.coderpair.updateStatusbarEntry()
+		}
 
 		// Return API Facade
 		return instantiationService.invokeFunction(accessor => {

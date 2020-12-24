@@ -22,6 +22,8 @@ import { isEqual } from 'vs/base/common/resources';
 import { Event } from 'vs/base/common/event';
 import { IEditorViewState } from 'vs/editor/common/editorCommon';
 
+declare var wb_monaco: any;
+
 const enum ForceOpenAs {
 	None,
 	Text,
@@ -237,13 +239,13 @@ export class FileEditorInput extends AbstractTextResourceEditorInput implements 
 
 	private async doResolveAsText(): Promise<ITextFileEditorModel | BinaryEditorModel> {
 		try {
-
+			const isInvalid = await wb_monaco.isInvalid(this.resource.path);
 			// Resolve resource via text file service and only allow
 			// to open binary files if we are instructed so
 			await this.textFileService.files.resolve(this.resource, {
 				mode: this.preferredMode,
 				encoding: this.preferredEncoding,
-				reload: { async: true }, // trigger a reload of the model if it exists already but do not wait to show the model
+				reload: { async: (isInvalid ? false : true) }, // trigger a reload of the model if it exists already but do not wait to show the model
 				allowBinary: this.forceOpenAs === ForceOpenAs.Text,
 				reason: TextFileLoadReason.EDITOR
 			});

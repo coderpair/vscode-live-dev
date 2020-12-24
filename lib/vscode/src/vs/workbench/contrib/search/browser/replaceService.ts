@@ -25,6 +25,8 @@ import { Range } from 'vs/editor/common/core/range';
 import { EditOperation } from 'vs/editor/common/core/editOperation';
 import { mergeSort } from 'vs/base/common/arrays';
 
+declare var wb_monaco: any;
+
 const REPLACE_PREVIEW = 'replacePreview';
 
 const toReplaceResource = (fileResource: URI): URI => {
@@ -103,7 +105,10 @@ export class ReplaceService implements IReplaceService {
 		const edits = this.createEdits(arg, resource);
 		await this.bulkEditorService.apply(edits, { progress });
 
-		return Promise.all(edits.map(e => this.textFileService.files.get(e.resource)?.save()));
+		return Promise.all(edits.map(e => {
+			const t = this.textFileService.files.get(e.resource);
+			return !t ? void 0 :
+				wb_monaco.invalidate(e.resource.path).then(function () {return t.save()})}))		
 	}
 
 	async openReplacePreview(element: FileMatchOrMatch, preserveFocus?: boolean, sideBySide?: boolean, pinned?: boolean): Promise<any> {

@@ -73,6 +73,10 @@ export class HorizontalScrollbar extends AbstractScrollbar {
 		this.slider.setLeft(sliderPosition);
 	}
 
+	public _updateSlider2(sliderPosition: number): void {
+		this.slider.setLeft(sliderPosition);
+	}
+
 	protected _renderDomNode(largeSize: number, smallSize: number): void {
 		this.domNode.setWidth(largeSize);
 		this.domNode.setHeight(smallSize);

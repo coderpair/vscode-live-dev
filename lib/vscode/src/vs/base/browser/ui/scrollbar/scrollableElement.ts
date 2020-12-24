@@ -148,9 +148,9 @@ export class MouseWheelClassifier {
 export abstract class AbstractScrollableElement extends Widget {
 
 	private readonly _options: ScrollableElementResolvedOptions;
-	protected readonly _scrollable: Scrollable;
+	public readonly _scrollable: Scrollable;
 	private readonly _verticalScrollbar: VerticalScrollbar;
-	private readonly _horizontalScrollbar: HorizontalScrollbar;
+	public readonly _horizontalScrollbar: HorizontalScrollbar;
 	private readonly _domNode: HTMLElement;
 
 	private readonly _leftShadowDomNode: FastDomNode<HTMLElement> | null;
@@ -423,7 +423,7 @@ export abstract class AbstractScrollableElement extends Widget {
 			}
 		}
 
-		if (this._options.alwaysConsumeMouseWheel || this._shouldRender) {
+		if (!this._options.allowPropagation && (this._options.alwaysConsumeMouseWheel || this._shouldRender)) {
 			e.preventDefault();
 			e.stopPropagation();
 		}
@@ -597,6 +597,7 @@ function resolveOptions(opts: ScrollableElementCreationOptions): ScrollableEleme
 		handleMouseWheel: (typeof opts.handleMouseWheel !== 'undefined' ? opts.handleMouseWheel : true),
 		flipAxes: (typeof opts.flipAxes !== 'undefined' ? opts.flipAxes : false),
 		alwaysConsumeMouseWheel: (typeof opts.alwaysConsumeMouseWheel !== 'undefined' ? opts.alwaysConsumeMouseWheel : false),
+		allowPropagation: (typeof opts.allowPropagation !== 'undefined' ? opts.allowPropagation : false),
 		scrollYToX: (typeof opts.scrollYToX !== 'undefined' ? opts.scrollYToX : false),
 		mouseWheelScrollSensitivity: (typeof opts.mouseWheelScrollSensitivity !== 'undefined' ? opts.mouseWheelScrollSensitivity : 1),
 		fastScrollSensitivity: (typeof opts.fastScrollSensitivity !== 'undefined' ? opts.fastScrollSensitivity : 5),
